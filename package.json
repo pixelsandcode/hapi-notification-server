@@ -2,12 +2,19 @@
   "name": "hapi-notification-server",
   "version": "1.0.0",
   "description": "Hapi Push Notification Server as a plugin",
-  "main": "src/main",
+  "main": "build/main",
   "peerDependencies": {
     "hapi": "^8.0.0"
   },
   "engines": {
     "node": "0.10.*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tectual/hapi-notification-server"
+  },
+  "bugs": {
+    "url": "https://github.com/tectual/hapi-notification-server/issues"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
