@@ -58,10 +58,14 @@ server.methods.ns.emit 'experiences.new', 'ex_003'
 **Payload { user_key: 'key', nid: 'notification token', device: 'android | ios' }**
 
 This is used to store user's device in notifcation server.
+
 ### DELETE /users/{id}
+
 This will delete a user's device in notifcation server.
+
 ### POST /messages 
 **Payload { user_keys: ['key1', 'key2', ...], tempalte: 'events.new', data: { name: 'Snow trip', at: '3 days from now' } }**
+
 This will send a message to all users' devices.
 
 ## Templates
