@@ -1,0 +1,20 @@
+<!DOCTYPE html><html lang="en"><head><title>handlers/messages</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="handlers/messages"><meta name="groc-project-path" content="src/handlers/messages.coffee"><meta name="groc-github-url" content="https://github.com/tectual/hapi-notification-server"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/tectual/hapi-notification-server/blob/master/src/handlers/messages.coffee">src/handlers/messages.coffee</a></div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper">_    = <span class="hljs-built_in">require</span> <span class="hljs-string">'lodash'</span>
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-params">(server, options)</span> -&gt;</span> 
+
+  Message = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../models/message'</span>)(options)
+  Device = <span class="hljs-built_in">require</span>(<span class="hljs-string">'../models/device'</span>)(options)
+  
+  bucket = options.database
+
+  {
+    <span class="hljs-attribute">post</span>: <span class="hljs-function"><span class="hljs-params">(request, reply)</span> -&gt;</span>
+      payload = request.payload
+      message = <span class="hljs-keyword">new</span> Message
+      message.load(request.payload.template).<span class="hljs-keyword">then</span>( <span class="hljs-function"><span class="hljs-params">(template)</span> -&gt;</span>
+        _.each payload.user_keys, <span class="hljs-function"><span class="hljs-params">(u)</span> -&gt;</span>
+          Device.find_by_user(u).<span class="hljs-keyword">then</span> (device) -&gt;
+            message.deliver( device, payload.data )
+        reply.success <span class="hljs-literal">true</span>
+      ).done()
+  }</div></div></div></div></body></html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html><html lang="en"><head><title>models/message</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="models/message"><meta name="groc-project-path" content="src/models/message.coffee"><meta name="groc-github-url" content="https://github.com/tectual/hapi-notification-server"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/tectual/hapi-notification-server/blob/master/src/models/message.coffee">src/models/message.coffee</a></div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper">_    = <span class="hljs-built_in">require</span> <span class="hljs-string">'lodash'</span>
+Path = <span class="hljs-built_in">require</span> <span class="hljs-string">'path'</span>
+Fs   = <span class="hljs-built_in">require</span> <span class="hljs-string">'fs'</span>
+Q    = <span class="hljs-built_in">require</span> <span class="hljs-string">'q'</span>
+APN  = <span class="hljs-built_in">require</span> <span class="hljs-string">'apn'</span>
+GCM  = <span class="hljs-built_in">require</span> <span class="hljs-string">'node-gcm'</span>
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-params">(options)</span> -&gt;</span>
+
+  <span class="hljs-keyword">return</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Message</span></span>
+
+    <span class="hljs-attribute">load</span>: <span class="hljs-function"><span class="hljs-params">(template)</span> -&gt;</span>
+      <span class="hljs-property">@templates</span> = { <span class="hljs-attribute">android</span>: <span class="hljs-literal">null</span>, <span class="hljs-attribute">iphone</span>: <span class="hljs-literal">null</span> }
+      _this = @
+      filename = template.replace(<span class="hljs-regexp">/\./</span>,<span class="hljs-string">'/'</span>)
+      android = Path.join options.config.templates, <span class="hljs-string">"<span class="hljs-subst">#{filename}</span>.android.json"</span>
+      iphone = Path.join options.config.templates, <span class="hljs-string">"<span class="hljs-subst">#{filename}</span>.iphone.json"</span>
+      Q.all([
+        Q.nfcall(Fs.readFile, android, <span class="hljs-string">"utf-8"</span>),
+        Q.nfcall(Fs.readFile, iphone, <span class="hljs-string">"utf-8"</span>)
+        ]).<span class="hljs-keyword">then</span>( <span class="hljs-function"><span class="hljs-params">(templates)</span> -&gt;</span>
+          _this.templates = { <span class="hljs-attribute">android</span>: _.trim(templates[<span class="hljs-number">0</span>]), <span class="hljs-attribute">iphone</span>: _.trim(templates[<span class="hljs-number">1</span>]) }
+        )
+
+    <span class="hljs-attribute">render</span>: <span class="hljs-function"><span class="hljs-params">(data, type)</span>-&gt;</span>
+      tmpl = <span class="hljs-property">@templates</span>[type]
+      _.each data, <span class="hljs-function"><span class="hljs-params">(value, key)</span> -&gt;</span>
+        tmpl = tmpl.replace <span class="hljs-keyword">new</span> RegExp(<span class="hljs-string">'#{'</span>+key+<span class="hljs-string">'}'</span>, <span class="hljs-string">'g'</span>), value
+      tmpl.replace <span class="hljs-regexp">/#\{[^\}]+\}/g</span>, <span class="hljs-string">''</span>
+  
+    <span class="hljs-attribute">deliver</span>: <span class="hljs-function"><span class="hljs-params">(device, data)</span>-&gt;</span>
+      <span class="hljs-keyword">try</span> 
+        <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span> <span class="hljs-keyword">if</span> device <span class="hljs-keyword">instanceof</span> Error
+        _.each  device, 
+                <span class="hljs-function"><span class="hljs-params">(sids, type)</span> -&gt;</span>
+                  msg = JSON.parse <span class="hljs-property">@render</span>( data, type )
+                  <span class="hljs-keyword">if</span> type == <span class="hljs-string">'iphone'</span>
+                    <span class="hljs-property">@deliver_to_iphone</span> sids, msg
+                  <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> type == <span class="hljs-string">'android'</span>
+                    <span class="hljs-property">@deliver_to_android</span> sids, msg
+                , @
+      <span class="hljs-keyword">catch</span> e
+        <span class="hljs-built_in">console</span>.log e
+    
+    <span class="hljs-attribute">apn</span>: <span class="hljs-function">-&gt;</span> <span class="hljs-property">@apn_connection</span> ||= <span class="hljs-keyword">new</span> APN.Connection options.config.apn
+    
+    <span class="hljs-attribute">gcm</span>: <span class="hljs-function">-&gt;</span> <span class="hljs-property">@gcm_connection</span> ||= <span class="hljs-keyword">new</span> GCM.Sender options.config.gcm
+
+    <span class="hljs-attribute">deliver_to_iphone</span>: <span class="hljs-function"><span class="hljs-params">(sids, msg)</span>-&gt;</span>
+      <span class="hljs-property">@apn</span>()
+      note = <span class="hljs-keyword">new</span> APN.Notification
+      _.each msg, <span class="hljs-function"><span class="hljs-params">(v,k)</span>-&gt;</span> note[k] = v
+      _.each  sids,
+              <span class="hljs-function"><span class="hljs-params">(sid)</span>-&gt;</span>
+                device = <span class="hljs-keyword">new</span> APN.Device sid
+                <span class="hljs-property">@apn_connection</span>.pushNotification note, device
+              , @
+
+    <span class="hljs-attribute">deliver_to_android</span>: <span class="hljs-function"><span class="hljs-params">(sids, msg)</span>-&gt;</span>
+      <span class="hljs-property">@gcm</span>()
+      note = <span class="hljs-keyword">new</span> GCM.Message
+      _.each msg, <span class="hljs-function"><span class="hljs-params">(v,k)</span>-&gt;</span> note[k] = v
+      <span class="hljs-property">@gcm_connection</span>.send note, sids</div></div></div></div></body></html>

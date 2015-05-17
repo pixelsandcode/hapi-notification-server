@@ -1,0 +1,60 @@
+<!DOCTYPE html><html lang="en"><head><title>index</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="index"><meta name="groc-project-path" content="README.md"><meta name="groc-github-url" content="https://github.com/tectual/hapi-notification-server"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/tectual/hapi-notification-server/blob/master/README.md">README.md</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="hapi-notification-server">Hapi Notification Server</h1>
+<p><a href="https://travis-ci.org/tectual/hapi-notification-server"><img src="https://travis-ci.org/tectual/hapi-notification-server.svg" alt="Build Status"></a>
+<a href="http://badge.fury.io/js/hapi-notification-server"><img src="https://badge.fury.io/js/hapi-notification-server.svg" alt="npm version"></a>
+<a href="https://coveralls.io/r/tectual/hapi-notification-server?branch=master"><img src="https://coveralls.io/repos/tectual/hapi-notification-server/badge.svg?branch=master" alt="Coverage Status"></a></p>
+<p><a href="https://www.npmjs.com/package/hapi-notification-server">Hapi Notification Server</a> is using couchbase with puffer library to register user devices and send notifications to both android and ios.</p>
+<ul>
+<li>Source code is available at <a href="https://github.com/tectual/hapi-notification-server">here</a>.</li>
+</ul>
+<h2 id="how-to-use">How to use</h2>
+<p>You have to pass these variables to the plugin.</p>
+<pre><code class="lang-yaml">notification:
+  host: localhost
+  port: 3200
+  namespace: ns
+  label: notification
+  templates: /Users/developer/my_project/ns_templates
+  apn:
+    cert: path_to_cert
+    key: path_to_key
+    production: true
+  gcm: 1234567890</code></pre>
+<p>You should start a notification server in your code and also pass configuration to the notification server plugin:</p>
+<pre><code class="lang-coffee">server.connection { <span class="hljs-attribute">port</span>: Number(config.server.notification.port), <span class="hljs-attribute">labels</span>: config.server.notification.label }
+
+db = <span class="hljs-keyword">new</span> <span class="hljs-built_in">require</span>(<span class="hljs-string">'puffer'</span>)(config.database)
+
+server.register [ { <span class="hljs-attribute">register</span>: <span class="hljs-built_in">require</span>(<span class="hljs-string">'hapi-notification-server'</span>), <span class="hljs-attribute">options</span>: { <span class="hljs-attribute">config</span>: config.server.notification, <span class="hljs-attribute">database</span>: db } } ], <span class="hljs-function"><span class="hljs-params">(err)</span> -&gt;</span> <span class="hljs-keyword">throw</span> err <span class="hljs-keyword">if</span> err</code></pre>
+<h2 id="events">Events</h2>
+<p>This plugin will add an event bus to decouple your business logic from notification logic.</p>
+<pre><code class="lang-coffee"><span class="hljs-comment"># creating an event</span>
+server.methods.ns.<span class="hljs-literal">on</span> <span class="hljs-string">'experiences.new'</span>, <span class="hljs-function"><span class="hljs-params">(experience_key)</span>-&gt;</span>
+  <span class="hljs-comment"># user_doc_keys =  Your logic to find which users should get this notification</span>
+  <span class="hljs-comment"># { "user_keys": [1, 11], "template": "events.new", "data": { "hostel": "Base Sydney", "name": "Manly BBQ" } }</span>
+  server.inject {
+    <span class="hljs-attribute">url</span>: <span class="hljs-string">"<span class="hljs-subst">#{config.server.notification.host}</span>:<span class="hljs-subst">#{config.server.notification.port}</span>/messages"</span>
+    <span class="hljs-attribute">payload</span>: JSON.stringify(user_doc_keys)
+  }, <span class="hljs-function"><span class="hljs-params">(res)</span> -&gt;</span>
+
+<span class="hljs-comment"># triggering the event</span>
+server.methods.ns.emit <span class="hljs-string">'experiences.new'</span>, <span class="hljs-string">'ex_003'</span></code></pre>
+<h2 id="apis">APIs</h2>
+<h3 id="post-users">POST /users</h3>
+<p><strong>Payload { user_key: &#39;key&#39;, nid: &#39;notification token&#39;, device: &#39;android | ios&#39; }</strong></p>
+<p>This is used to store user&#39;s device in notifcation server.</p>
+<h3 id="delete-usersid">DELETE /users/{id}</h3>
+<p>This will delete a user&#39;s device in notifcation server.</p>
+<h3 id="post-messages">POST /messages</h3>
+<p><strong>Payload { user_keys: [&#39;key1&#39;, &#39;key2&#39;, ...], template: &#39;events.new&#39;, data: { name: &#39;Snow trip&#39;, at: &#39;3 days from now&#39; } }</strong></p>
+<p>This will send a message to all users&#39; devices.</p>
+<h2 id="templates">Templates</h2>
+<p>Path to template folder is defined in the configuration at plugin registration time. Notification Server plugin will use that path and your template name to load android or iphone message format.</p>
+<p>If you have your template path set to <em>/Users/developer/my_project/ns_templates</em> and your template name is &#39;events.new&#39;, Notification Server will try to laod 2 templates:</p>
+<ul>
+<li>/Users/developer/my_project/ns_templates/events/new.android.json</li>
+<li>/Users/developer/my_project/ns_templates/events/new.iphone.json</li>
+</ul>
+<p>Android file should be like this (read more at <a href="https://www.npmjs.com/package/node-gcm">https://www.npmjs.com/package/node-gcm</a>):</p>
+<pre><code class="lang-json">{ "<span class="hljs-attribute">data</span>": <span class="hljs-value">{ "<span class="hljs-attribute">message</span>": <span class="hljs-value"><span class="hljs-string">"#{hostel} created new event #{name}. Check #{name} now!"</span> </span>} </span>}</code></pre>
+<p>iPhone file should be like this (read more at <a href="https://www.npmjs.com/package/apn">https://www.npmjs.com/package/apn</a>):</p>
+<pre><code class="lang-json">{ "<span class="hljs-attribute">badge</span>": <span class="hljs-value"><span class="hljs-number">0</span></span>, "<span class="hljs-attribute">sound</span>": <span class="hljs-value"><span class="hljs-string">"buzz.aiff"</span></span>, "<span class="hljs-attribute">alert</span>": <span class="hljs-value"><span class="hljs-string">"#{hostel} created new event #{name}. Check #{name} now!"</span></span>, "<span class="hljs-attribute">payload</span>": <span class="hljs-value">{ "<span class="hljs-attribute">hostel</span>": <span class="hljs-value"><span class="hljs-string">"#{hostel}"</span> </span>} </span>}</code></pre></div></div></div></div></body></html>
