@@ -64,7 +64,7 @@ This is used to store user's device in notifcation server.
 This will delete a user's device in notifcation server.
 
 ### POST /messages 
-**Payload { user_keys: ['key1', 'key2', ...], tempalte: 'events.new', data: { name: 'Snow trip', at: '3 days from now' } }**
+**Payload { user_keys: ['key1', 'key2', ...], template: 'events.new', data: { name: 'Snow trip', at: '3 days from now' } }**
 
 This will send a message to all users' devices.
 
@@ -72,7 +72,7 @@ This will send a message to all users' devices.
 
 Path to template folder is defined in the configuration at plugin registration time. Notification Server plugin will use that path and your template name to load android or iphone message format.
 
-If you have your template path set to */Users/developer/my_project/ns_templates* and your template name is 'events.new', Notification Server will try to laod 2 tempaltes:
+If you have your template path set to */Users/developer/my_project/ns_templates* and your template name is 'events.new', Notification Server will try to laod 2 templates:
 - /Users/developer/my_project/ns_templates/events/new.android.json
 - /Users/developer/my_project/ns_templates/events/new.iphone.json
 
