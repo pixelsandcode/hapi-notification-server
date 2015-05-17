@@ -69,8 +69,8 @@ This will send a message to all users' devices.
 Path to template folder is defined in the configuration at plugin registration time. Notification Server plugin will use that path and your template name to load android or iphone message format.
 
 If you have your template path set to */Users/developer/my_project/ns_templates* and your template name is 'events.new', Notification Server will try to laod 2 tempaltes:
-# /Users/developer/my_project/ns_templates/events/new.android.json
-# /Users/developer/my_project/ns_templates/events/new.iphone.json
+- /Users/developer/my_project/ns_templates/events/new.android.json
+- /Users/developer/my_project/ns_templates/events/new.iphone.json
 
 Android file should be like this (read more at https://www.npmjs.com/package/node-gcm):
 ```json
