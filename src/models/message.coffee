@@ -24,9 +24,11 @@ module.exports = (options) ->
 
     render: (data, type)->
       tmpl = @templates[type]
-      _.each data, (value, key) ->
-        tmpl = tmpl.replace new RegExp('#{'+key+'}', 'g'), value
-      tmpl.replace /#\{[^\}]+\}/g, ''
+      vars = _.uniq tmpl.match /#\{[^\}\{]+\}/g
+      _.each vars, (value, key) ->
+        v = _.get(data, _.trim(value,'#{}')) ? ''
+        tmpl = tmpl.replace new RegExp(value, 'g'), v
+      tmpl.replace /#\{[^\}\{]+\}/g, ''
   
     deliver: (device, data)->
       try 

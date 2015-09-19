@@ -37,12 +37,15 @@
       };
 
       Message.prototype.render = function(data, type) {
-        var tmpl;
+        var tmpl, vars;
         tmpl = this.templates[type];
-        _.each(data, function(value, key) {
-          return tmpl = tmpl.replace(new RegExp('#{' + key + '}', 'g'), value);
+        vars = _.uniq(tmpl.match(/#\{[^\}\{]+\}/g));
+        _.each(vars, function(value, key) {
+          var ref, v;
+          v = (ref = _.get(data, _.trim(value, '#{}'))) != null ? ref : '';
+          return tmpl = tmpl.replace(new RegExp(value, 'g'), v);
         });
-        return tmpl.replace(/#\{[^\}]+\}/g, '');
+        return tmpl.replace(/#\{[^\}\{]+\}/g, '');
       };
 
       Message.prototype.deliver = function(device, data) {
