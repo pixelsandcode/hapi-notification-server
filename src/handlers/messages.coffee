@@ -13,8 +13,8 @@ module.exports = (server, options) ->
       message = new Message
       message.load(request.payload.template).then( (template) ->
         if options.config.mock
-          message.render payload.data, 'android'
-          message.render payload.data, 'iphone'
+          console.log message.render payload.data, 'android'
+          console.log message.render payload.data, 'iphone'
         else
           _.each payload.user_keys, (u) ->
             Device.find_by_user(u).then (device) ->
