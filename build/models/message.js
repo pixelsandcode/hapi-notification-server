@@ -63,8 +63,8 @@
               return this.deliver_to_android(sids, msg);
             }
           }, this);
-        } catch (_error) {
-          e = _error;
+        } catch (error) {
+          e = error;
           return console.log(e);
         }
       };
