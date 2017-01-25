@@ -31,7 +31,7 @@
         fs.writeFile(file, data, function(error) {
           return deferred.resolve(error);
         });
-        return deferred.promise();
+        return deferred.promise;
       }
     };
     return {
@@ -54,16 +54,19 @@
                   return reply.badImplementation("something's wrong with dump path");
                 }
                 data = {
-                  android: message.render(payload.data, 'android'),
-                  iphone: message.render(payload.data, 'iphone')
+                  android: JSON.parse(message.render(payload.data, 'android')),
+                  iphone: JSON.parse(message.render(payload.data, 'iphone'))
                 };
-                return privates.write_file(file, data);
+                return privates.write_file(file, JSON.stringify(data));
               }).then(function(error) {
                 if (error) {
                   return reply.badImplementation("something's went wrong when writing to dump path");
                 }
+                console.log("dumped to: " + file);
                 return reply.success(true);
               });
+            } else {
+              return reply.success(true);
             }
           } else {
             _.each(payload.user_keys, function(u) {

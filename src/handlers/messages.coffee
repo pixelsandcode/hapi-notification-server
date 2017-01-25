@@ -22,7 +22,7 @@ module.exports = (server, options) ->
       deferred = Q.defer()
       fs.writeFile file, data, (error) ->
         deferred.resolve(error)
-      deferred.promise()
+      deferred.promise
 
   {
     post: (request, reply) ->
@@ -39,12 +39,15 @@ module.exports = (server, options) ->
             .then (err) ->
               return reply.badImplementation "something's wrong with dump path" if err
               data =
-                android: message.render payload.data, 'android'
-                iphone: message.render payload.data, 'iphone'
-              privates.write_file(file, data)
+                android: JSON.parse(message.render(payload.data, 'android'))
+                iphone: JSON.parse(message.render(payload.data, 'iphone'))
+              privates.write_file(file, JSON.stringify(data) )
             .then (error) ->
               return reply.badImplementation "something's went wrong when writing to dump path" if error
+              console.log "dumped to: #{file}"
               reply.success true
+          else
+            reply.success true
         else
           _.each payload.user_keys, (u) ->
             Device.find_by_user(u).then (device) ->
