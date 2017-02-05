@@ -1,6 +1,6 @@
 {
   "name": "hapi-notification-server",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Hapi Push Notification Server as a plugin",
   "main": "build/main",
   "peerDependencies": {
