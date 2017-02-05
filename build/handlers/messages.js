@@ -47,7 +47,7 @@
               console.log(message.render(payload.data, 'iphone'));
             }
             if (options.config.dump) {
-              file = Path.join(options.config.dump_path, payload.template + "_" + (moment().unix()) + ".json");
+              file = Path.join(options.config.dump_path, payload.template + "_" + (payload.user_keys.join(',')) + ".json");
               return privates.dir_ensure(file).then(function(err) {
                 var data;
                 if (err) {
