@@ -70,7 +70,7 @@
       };
 
       Message.prototype.apn = function() {
-        return this.apn_connection || (this.apn_connection = new APN.Connection(options.config.apn));
+        return this.apn_connection || (this.apn_connection = new APN.Provider(options.config.apn.provider));
       };
 
       Message.prototype.gcm = function() {
@@ -81,13 +81,12 @@
         var note;
         this.apn();
         note = new APN.Notification;
+        note.topic = options.config.apn.bundle_id;
         _.each(msg, function(v, k) {
           return note[k] = v;
         });
         return _.each(sids, function(sid) {
-          var device;
-          device = new APN.Device(sid);
-          return this.apn_connection.pushNotification(note, device);
+          return this.apn_connection.pushNotification(note, sid);
         }, this);
       };
 
