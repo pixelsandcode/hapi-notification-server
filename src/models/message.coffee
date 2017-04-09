@@ -44,18 +44,18 @@ module.exports = (options) ->
       catch e
         console.log e
     
-    apn: -> @apn_connection ||= new APN.Connection options.config.apn
+    apn: -> @apn_connection ||= new APN.Provider options.config.apn.provider
     
     gcm: -> @gcm_connection ||= new GCM.Sender options.config.gcm
 
     deliver_to_iphone: (sids, msg)->
       @apn()
       note = new APN.Notification
+      note.topic = options.config.apn.bundle_id
       _.each msg, (v,k)-> note[k] = v
       _.each  sids,
               (sid)->
-                device = new APN.Device sid
-                @apn_connection.pushNotification note, device
+                @apn_connection.pushNotification note, sid
               , @
 
     deliver_to_android: (sids, msg)->
