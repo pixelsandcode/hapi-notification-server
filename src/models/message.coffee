@@ -55,7 +55,7 @@ module.exports = (options) ->
       _.each msg, (v,k)-> note[k] = v
       _.each  sids,
               (sid)->
-                @apn_connection.pushNotification note, sid
+                @apn_connection.send note, sid
               , @
 
     deliver_to_android: (sids, msg)->

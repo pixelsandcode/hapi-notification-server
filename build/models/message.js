@@ -86,7 +86,7 @@
           return note[k] = v;
         });
         return _.each(sids, function(sid) {
-          return this.apn_connection.pushNotification(note, sid);
+          return this.apn_connection.send(note, sid);
         }, this);
       };
 
