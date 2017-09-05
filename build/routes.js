@@ -1,7 +1,9 @@
 (function() {
-  var Joi;
+  var Joi, _;
 
   Joi = require('joi');
+
+  _ = require('lodash');
 
   module.exports = function(server, options) {
     var Messages, Users;
@@ -45,6 +47,27 @@
               data: Joi.object().required()
             }
           }
+        }
+      }, {
+        method: 'POST',
+        path: "/users/{user_key}/unsubscribe",
+        config: {
+          handler: Users.unsubscribe,
+          description: 'Unsubscribe users from notifications based on their notification level',
+          tags: ['users', 'notification'],
+          validate: {
+            payload: {
+              notification_level: Joi.string().valid(_.keys(options.config.notification_levels))
+            }
+          }
+        }
+      }, {
+        method: 'GET',
+        path: "/messages/levels",
+        config: {
+          handler: Messages.get_notification_levels,
+          description: 'Return existing notification levels',
+          tags: ['message', 'notification']
         }
       }
     ];
