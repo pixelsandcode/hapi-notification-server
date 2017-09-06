@@ -36,7 +36,7 @@ module.exports = (options) ->
     @check_if_user_unsubscribed: (user_key, notification_type) ->
       @get_unsubscribed_notifications_of_user(user_key)
         .then (unsubscribed_notificaions) ->
-          if unsubscribed_notificaions instanceof Error || unsubscribed_notificaions == options.config.notification_levels.all.unsubscribed_notifications
+          if unsubscribed_notificaions instanceof Error || !options.config.notification_levels? || unsubscribed_notificaions == options.config.notification_levels.all.unsubscribed_notifications
             return false
           else if unsubscribed_notificaions == options.config.notification_levels.none.unsubscribed_notifications
             return true
