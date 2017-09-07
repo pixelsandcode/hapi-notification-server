@@ -4,42 +4,42 @@ module.exports = (options) ->
 
   return class Device
 
-    PREFIX: "ns"
-    POSTFIX: "unsubscribe"
+    NOTIFICATION_SETTING:
+      PREFIX: "ns"
+      POSTFIX: "setting"
     
     @key: (user_key) -> "ns_u_#{user_key}"
 
     @find_by_user: (user_key) ->
       bucket.get @key(user_key), true
 
-    @unsubscribe: (user_key, notification_level) ->
-      key = @_unsubscribe_key(user_key)
-      _this = @
-      doc = { unsubscribed_notifications: options.config.notification_levels[notification_level].unsubscribed_notifications }
+    @set_notification_setting: (user_key, notification_level) ->
+      key = @_notification_setting_key(user_key)
+      doc = { notification_level: notification_level }
       bucket.get(key)
         .then (d) ->
           if d instanceof Error
             bucket.insert(key, doc)
           else
-            bucket.replace(key, doc)
+            bucket.update(key, doc)
 
-    @_unsubscribe_key: (user_key) ->
-      "#{Device::PREFIX}:#{user_key}:#{Device::POSTFIX}"
+    @_notification_setting_key: (user_key) ->
+      "#{Device::NOTIFICATION_SETTING.PREFIX}:#{user_key}:#{Device::NOTIFICATION_SETTING.POSTFIX}"
 
-    @get_unsubscribed_notifications_of_user: (user_key) ->
-      key = @_unsubscribe_key(user_key)
+    @get_notification_setting: (user_key) ->
+      key = @_notification_setting_key(user_key)
       bucket.get(key)
         .then (d) ->
-          return [] if d instanceof Error
-          d.value.unsubscribed_notifications
+          return new Error() if d instanceof Error
+          d.value
 
     @check_if_user_unsubscribed: (user_key, notification_type) ->
-      @get_unsubscribed_notifications_of_user(user_key)
-        .then (unsubscribed_notificaions) ->
-          if unsubscribed_notificaions instanceof Error || !options.config.notification_levels? || unsubscribed_notificaions == options.config.notification_levels.all.unsubscribed_notifications
+      @get_notification_setting(user_key)
+        .then (setting) ->
+          if setting instanceof Error || !options.config.notification_levels? || !setting.notification_level? || setting.notification_level == options.config.notification_levels.all
             return false
-          else if unsubscribed_notificaions == options.config.notification_levels.none.unsubscribed_notifications
+          else if setting.notification_level == options.config.notification_levels.none
             return true
-          else if unsubscribed_notificaions.indexOf(notification_type) >= 0
+          else if options.config.notification_levels[setting.notification_level]? and options.config.notification_levels[setting.notification_level].unsubscribed_notifications.indexOf(notification_type) >= 0
             return true
           false

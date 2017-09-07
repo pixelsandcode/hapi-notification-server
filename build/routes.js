@@ -50,10 +50,10 @@
         }
       }, {
         method: 'POST',
-        path: "/users/{user_key}/unsubscribe",
+        path: "/users/{user_key}/notifications/setting",
         config: {
-          handler: Users.unsubscribe,
-          description: 'Unsubscribe users from notifications based on their notification level',
+          handler: Users.set_notification_setting,
+          description: 'Set notification setting for user',
           tags: ['users', 'notification'],
           validate: {
             payload: {

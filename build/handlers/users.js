@@ -34,8 +34,8 @@
       remove: function(request, reply) {
         return reply.nice('Not implemented yet!!!!!');
       },
-      unsubscribe: function(request, reply) {
-        return Device.unsubscribe(request.params.user_key, request.payload.notification_level).then(function(result) {
+      set_notification_setting: function(request, reply) {
+        return Device.set_notification_setting(request.params.user_key, request.payload.notification_level).then(function(result) {
           if (result instanceof Error) {
             return reply.badImplementation('something went wrong');
           }

@@ -26,8 +26,8 @@ module.exports = (server, options) ->
     remove: (request, reply) ->
       reply.nice 'Not implemented yet!!!!!'
 
-    unsubscribe: (request, reply) ->
-      Device.unsubscribe(request.params.user_key, request.payload.notification_level)
+    set_notification_setting: (request, reply) ->
+      Device.set_notification_setting(request.params.user_key, request.payload.notification_level)
       .then (result) ->
         return reply.badImplementation 'something went wrong' if result instanceof Error
         reply.success true
