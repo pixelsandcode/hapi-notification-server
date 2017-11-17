@@ -1,7 +1,9 @@
 (function() {
-  var _;
+  var Boom, _;
 
   _ = require('lodash');
+
+  Boom = require('boom');
 
   module.exports = function(server, options) {
     var Device, bucket;
@@ -32,7 +34,14 @@
         });
       },
       remove: function(request, reply) {
-        return reply.nice('Not implemented yet!!!!!');
+        var key;
+        key = Device.key(request.params.user_key);
+        return bucket.remove(key).then(function(res) {
+          if (res instanceof Error) {
+            return reply(Boom.notFound());
+          }
+          return reply.success(true);
+        });
       },
       set_notification_setting: function(request, reply) {
         return Device.set_notification_setting(request.params.user_key, request.payload.notification_level).then(function(result) {

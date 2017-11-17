@@ -27,7 +27,7 @@
         }
       }, {
         method: 'DELETE',
-        path: "/users/{id}",
+        path: "/users/{user_key}",
         config: {
           handler: Users.remove,
           description: "Clear user's notification id",

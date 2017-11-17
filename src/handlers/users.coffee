@@ -1,4 +1,5 @@
 _ = require 'lodash'
+Boom = require 'boom'
 
 module.exports = (server, options) -> 
   
@@ -24,7 +25,11 @@ module.exports = (server, options) ->
       ).then -> reply.success true
 
     remove: (request, reply) ->
-      reply.nice 'Not implemented yet!!!!!'
+      key = Device.key request.params.user_key
+      bucket.remove(key)
+        .then (res) ->
+          return reply Boom.notFound() if res instanceof Error
+          reply.success true
 
     set_notification_setting: (request, reply) ->
       Device.set_notification_setting(request.params.user_key, request.payload.notification_level)
