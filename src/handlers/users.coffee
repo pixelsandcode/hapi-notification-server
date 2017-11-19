@@ -26,10 +26,22 @@ module.exports = (server, options) ->
 
     remove: (request, reply) ->
       key = Device.key request.params.user_key
-      bucket.remove(key)
-        .then (res) ->
-          return reply Boom.notFound() if res instanceof Error
-          reply.success true
+      device = request.payload.device
+      nid = request.payload.nid
+      bucket.get(key)
+        .then (d) ->
+          return reply Boom.notFound() if d instanceof Error || !d.value[device]? || d.value[device].indexOf(nid) < 0
+          _.pull(d.value[device], nid)
+          delete d.value[device] if d.value[device].length == 0
+          clear_device_nid = () ->
+            if(!d.value['android'] and !d.value['iphone'])
+              return bucket.remove(key)
+            else
+              return bucket.replace(key, d.value)
+          clear_device_nid()
+            .then (res) ->
+              return reply Boom.badImplementation('something went wrong') if res instanceof Error
+              reply.success true
 
     set_notification_setting: (request, reply) ->
       Device.set_notification_setting(request.params.user_key, request.payload.notification_level)

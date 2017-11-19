@@ -30,6 +30,12 @@ module.exports = (server, options) ->
         handler: Users.remove
         description: "Clear user's notification id"
         tags: ['user', 'notification']
+        validate: {
+          payload: {
+            nid: Joi.string().required()
+            device: Joi.string().required().valid('iphone','android')
+          }
+        }
       }
     }
     {

@@ -31,7 +31,13 @@
         config: {
           handler: Users.remove,
           description: "Clear user's notification id",
-          tags: ['user', 'notification']
+          tags: ['user', 'notification'],
+          validate: {
+            payload: {
+              nid: Joi.string().required(),
+              device: Joi.string().required().valid('iphone', 'android')
+            }
+          }
         }
       }, {
         method: 'POST',

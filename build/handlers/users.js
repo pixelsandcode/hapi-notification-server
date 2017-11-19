@@ -34,13 +34,32 @@
         });
       },
       remove: function(request, reply) {
-        var key;
+        var device, key, nid;
         key = Device.key(request.params.user_key);
-        return bucket.remove(key).then(function(res) {
-          if (res instanceof Error) {
+        device = request.payload.device;
+        nid = request.payload.nid;
+        return bucket.get(key).then(function(d) {
+          var clear_device_nid;
+          if (d instanceof Error || (d.value[device] == null) || d.value[device].indexOf(nid) < 0) {
             return reply(Boom.notFound());
           }
-          return reply.success(true);
+          _.pull(d.value[device], nid);
+          if (d.value[device].length === 0) {
+            delete d.value[device];
+          }
+          clear_device_nid = function() {
+            if (!d.value['android'] && !d.value['iphone']) {
+              return bucket.remove(key);
+            } else {
+              return bucket.replace(key, d.value);
+            }
+          };
+          return clear_device_nid().then(function(res) {
+            if (res instanceof Error) {
+              return reply(Boom.badImplementation('something went wrong'));
+            }
+            return reply.success(true);
+          });
         });
       },
       set_notification_setting: function(request, reply) {
