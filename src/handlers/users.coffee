@@ -7,6 +7,8 @@ module.exports = (server, options) ->
 
   Device = require('../models/device')(options)
 
+  max_nid = if options.max_nid? then options.max_nid else 3
+
   {
     create: (request, reply) ->
       payload = request.payload
@@ -21,6 +23,7 @@ module.exports = (server, options) ->
           doc = d.value
           doc[payload.device] = [] unless doc[payload.device]?
           doc[payload.device] = _.union doc[payload.device], value
+          doc[payload.device].splice(0, doc[payload.device].length - max_nid) if doc[payload.device].length > max_nid
           bucket.replace( key, doc )
       ).then -> reply.success true
 

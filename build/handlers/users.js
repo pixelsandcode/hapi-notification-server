@@ -6,9 +6,10 @@
   Boom = require('boom');
 
   module.exports = function(server, options) {
-    var Device, bucket;
+    var Device, bucket, max_nid;
     bucket = options.database;
     Device = require('../models/device')(options);
+    max_nid = options.max_nid != null ? options.max_nid : 3;
     return {
       create: function(request, reply) {
         var key, payload;
@@ -27,6 +28,9 @@
               doc[payload.device] = [];
             }
             doc[payload.device] = _.union(doc[payload.device], value);
+            if (doc[payload.device].length > max_nid) {
+              doc[payload.device].splice(0, doc[payload.device].length - max_nid);
+            }
             return bucket.replace(key, doc);
           }
         }).then(function() {
