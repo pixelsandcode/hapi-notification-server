@@ -3,7 +3,7 @@ Path = require 'path'
 Fs   = require 'fs'
 Q    = require 'q'
 APN  = require 'apn'
-GCM  = require 'node-gcm'
+FBAdmin  = require 'firebase-admin'
 
 module.exports = (options) ->
 
@@ -46,7 +46,15 @@ module.exports = (options) ->
     
     apn: -> @apn_connection ||= new APN.Connection options.config.apn
     
-    gcm: -> @gcm_connection ||= new GCM.Sender options.config.gcm
+    # gcm: -> @gcm_connection ||= new GCM.Sender options.config.gcm
+    fcm: -> @fcm_connection ||= new FBAdmin.initializeApp {
+      credential: admin.credential.cert({
+        projectId: options.config.fcm.projectId,
+        privateKey: options.config.fcm.privateKey,
+        clientEmail: options.config.fcm.privateKey,
+      })  ,
+      databaseURL: options.config.fcm.databaseURL,
+    }
 
     deliver_to_iphone: (sids, msg)->
       @apn()
@@ -59,7 +67,7 @@ module.exports = (options) ->
               , @
 
     deliver_to_android: (sids, msg)->
-      @gcm()
-      note = new GCM.Message
+      @fcm()
+      note = new FBAdmin.messaging()
       _.each msg, (v,k)-> note[k] = v
-      @gcm_connection.send note, sids
+      @gcm_connection.messaging(). send note, sids
